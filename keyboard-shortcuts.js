@@ -2,8 +2,8 @@
   var I_KEY = 73;
   var J_KEY = 74;
   var K_KEY = 75;
-  var L_KEY = 76;
   var N_KEY = 78;
+  var SLASH_KEY = 191;
 
   document.addEventListener("keydown", function(e) {
     if (shortcutKeyPressed(e)) {
@@ -125,7 +125,7 @@
   }
 
   function linkModeKeyPressed(e) {
-    return keyPressed(e) === L_KEY && e.ctrlKey;
+    return keyPressed(e) === SLASH_KEY;
   }
 
   function focusNextLinkPressed(e) {
