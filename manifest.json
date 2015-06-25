@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "name": "Keyboard Shortcuts",
+  "version": "0.0.1",
+  "description": "A vimium inspired plugin that barely does anything.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": [],
+      "js": ["keyboard-shortcuts.js"]
+    }
+  ]
+}
