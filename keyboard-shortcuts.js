@@ -1,167 +1,200 @@
-(function() {
-  var I_KEY = 73;
-  var J_KEY = 74;
-  var K_KEY = 75;
-  var N_KEY = 78;
-  var SLASH_KEY = 191;
+var I_KEY = 73;
+var J_KEY = 74;
+var K_KEY = 75;
+var N_KEY = 78;
+var SLASH_KEY = 191;
 
-  document.addEventListener("keydown", function(e) {
-    if (shortcutKeyPressed(e)) {
-      shortcutMode.toggle();
-    } else if (shortcutMode.enabled()) {
-      if (linkModeKeyPressed(e)) {
-        linkMode.toggle();
-        linkFinder.setUp();
-      } else if (linkMode.enabled()) {
-        handleLinkInput(e);
-      } else {
-        handleKeyDown(e);
-      }
+document.addEventListener("keydown", function(e) {
+  if (shortcutKeyPressed(e)) {
+    shortcutMode.toggle();
+  } else if (shortcutMode.enabled()) {
+    if (linkModeKeyPressed(e)) {
+      linkMode.toggle();
+      linkFinder.setUp();
+    } else if (linkMode.enabled()) {
+      handleLinkInput(e);
+    } else {
+      handleKeyDown(e);
     }
-  });
+  }
+});
 
-  function handleLinkInput(e) {
-    if (focusNextLinkPressed(e).length) {
-      linkFinder.focusNext()
-    } else if (textEntered(e)) {
-      linkFinder.addChar(String.fromCharCode(e.keyCode));
+function handleLinkInput(e) {
+  if (focusNextLinkPressed(e)) {
+    linkFinder.focusNext()
+  } else if (textEntered(e)) {
+    linkFinder.addChar(String.fromCharCode(e.keyCode));
+  }
+}
+
+function LinkFinder() {
+  var linkText = "";
+  var matchingLinks = [];
+  var currentFocus = 0;
+  var _this = this;
+  var FOCUS_CLASS = "keyboard-shortcuts-focus-highlight";
+
+  function resetLinkText() {
+    linkText = "";
+  }
+
+  function resetMatchingLinks() {
+    matchingLinks = [];
+  }
+
+  function addLinkText(text) {
+    linkText += text;
+  }
+
+  function targetFocus() {
+    return _this.matchingLinks()[currentFocus];
+  }
+
+  function clearLinkFocus() {
+    doIfTargetFocus(function() {
+      targetFocus().blur();
+      removeFocusClass();
+    });
+  }
+
+  function addFocusClass() {
+    doIfTargetFocus(function() {
+      targetFocus().classList.add(FOCUS_CLASS);
+    });
+  }
+
+  function removeFocusClass() {
+    doIfTargetFocus(function() {
+      targetFocus().classList.remove(FOCUS_CLASS);
+    });
+  }
+
+  function doIfTargetFocus(callback, fail) {
+    if (typeof targetFocus() !== "undefined") {
+      callback();
+    } else if (typeof fail !== "undefined") {
+      fail();
     }
   }
 
-  function LinkFinder() {
-    var linkText = "";
-    var matchingLinks = [];
-    var currentFocus = 0;
-    var _this = this;
+  _this.setUp = function() {
+    clearLinkFocus();
+    resetMatchingLinks();
+    resetLinkText();
+  }
 
-    function resetLinkText() {
-      linkText = "";
-    }
+  _this.matchingLinks = function() {
+    return matchingLinks;
+  }
 
-    function resetMatchingLinks() {
-      matchingLinks = [];
-    }
-
-    function addLinkText(text) {
-      linkText += text;
-    }
-
-    function targetFocus() {
-      return _this.matchingLinks()[currentFocus];
-    }
-
-    function clearLinkFocus() {
-      if (typeof targetFocus() !== "undefined") {
-        targetFocus().blur();
+  _this.focusNext = function() {
+    removeFocusClass();
+    if (_this.matchingLinks().length) {
+      currentFocus += 1;
+      if (currentFocus > _this.matchingLinks().length - 1) {
+        currentFocus = 0;
       }
-    }
-
-    _this.setUp = function() {
-      clearLinkFocus();
-      resetMatchingLinks();
-      resetLinkText();
-    }
-
-    _this.matchingLinks = function() {
-      return matchingLinks;
-    }
-
-    _this.focusNext = function() {
-      if (_this.matchingLinks().length) {
-        currentFocus += 1;
-        if (currentFocus > _this.matchingLinks().length - 1) {
-          currentFocus = 0;
-        }
-        focusLink();
-      }
-    }
-
-    _this.addChar = function(char) {
-      resetMatchingLinks();
-      addLinkText(char);
-      findLink();
       focusLink();
     }
+  }
 
-    function focusLink() {
-      if (typeof targetFocus() !== "undefined") {
-        targetFocus().focus();
-      } else {
-        document.activeElement.blur();
+  _this.addChar = function(char) {
+    resetMatchingLinks();
+    addLinkText(char);
+    findLink();
+    focusLink();
+  }
+
+  function focusLink() {
+    doIfTargetFocus(function() {
+      targetFocus().focus();
+      addFocusClass();
+    }, function() {
+      document.activeElement.blur();
+      removeFocusClass();
+    });
+  }
+
+  function findLink() {
+    var links = document.getElementsByTagName("a");
+    for (var i=0, len=links.length; i<len; i++) {
+      if (nameMatch(links[i])) {
+        matchingLinks.push(links[i]);
       }
     }
-
-    function findLink() {
-      var links = document.getElementsByTagName("a");
-      for (var i=0, len=links.length; i<len; i++) {
-        if (nameMatch(links[i])) {
-          matchingLinks.push(links[i]);
-        }
-      }
-    }
-
-    function nameMatch(link) {
-      return link.innerText.toLowerCase().match(linkText.toLowerCase());
-    }
   }
 
-  function handleKeyDown(e) {
-    switch(keyPressed(e)) {
-      case J_KEY:
-        scroller.scrollDown();
-      break;
-      case K_KEY:
-        scroller.scrollUp();
-      break;
-    }
+  function nameMatch(link) {
+    return link.innerText.toLowerCase().match(linkText.toLowerCase());
   }
+}
 
-  function keyPressed(e) {
-    return e.keyCode;
+function handleKeyDown(e) {
+  switch(keyPressed(e)) {
+    case J_KEY:
+      scroller.scrollDown();
+    break;
+    case K_KEY:
+      scroller.scrollUp();
+    break;
   }
+}
 
-  function shortcutKeyPressed(e) {
-    return keyPressed(e) === I_KEY && e.ctrlKey;
+function keyPressed(e) {
+  return e.keyCode;
+}
+
+function shortcutKeyPressed(e) {
+  return keyPressed(e) === I_KEY && e.ctrlKey;
+}
+
+function linkModeKeyPressed(e) {
+  return keyPressed(e) === SLASH_KEY;
+}
+
+function focusNextLinkPressed(e) {
+  return keyPressed(e) === N_KEY && e.ctrlKey;
+}
+
+function textEntered(e) {
+  return String.fromCharCode(e.keyCode).match(/[a-zA-Z]/);
+}
+
+function defaultArgument(argument, defaultArg) {
+  if (typeof argument === "undefined") {
+    return defaultArg;
+  } else {
+    return argument;
   }
+}
 
-  function linkModeKeyPressed(e) {
-    return keyPressed(e) === SLASH_KEY;
-  }
+function ModeHandler() {
+  var mode = false;
 
-  function focusNextLinkPressed(e) {
-    return keyPressed(e) === N_KEY && e.ctrlKey;
-  }
+  this.toggle = function() {
+    mode = !mode;
+  };
 
-  function textEntered(e) {
-    return String.fromCharCode(e.keyCode).match(/[a-zA-Z]/);
-  }
+  this.enabled = function() {
+    return mode;
+  };
+}
 
-  function ModeHandler() {
-    var mode = false;
+function WindowScroller(_window) {
+  var SCROLL_AMOUNT = 100;
 
-    this.toggle = function() {
-      mode = !mode;
-    };
+  _window = defaultArgument(_window, window);
 
-    this.enabled = function() {
-      return mode;
-    };
-  }
+  this.scrollDown = function() {
+    _window.scrollBy(0, SCROLL_AMOUNT);
+  };
 
-  function WindowScroller() {
-    var SCROLL_AMOUNT = 100;
+  this.scrollUp = function() {
+    _window.scrollBy(0, SCROLL_AMOUNT * -1);
+  };
+}
 
-    this.scrollDown = function() {
-      window.scrollBy(0, SCROLL_AMOUNT);
-    };
-
-    this.scrollUp = function() {
-      window.scrollBy(0, SCROLL_AMOUNT * -1);
-    };
-  }
-
-  var shortcutMode = new ModeHandler();
-  var linkMode = new ModeHandler();
-  var scroller = new WindowScroller();
-  var linkFinder = new LinkFinder();
-})();
+var shortcutMode = new ModeHandler();
+var linkMode = new ModeHandler();
+var scroller = new WindowScroller();
+var linkFinder = new LinkFinder();
