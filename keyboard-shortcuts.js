@@ -39,6 +39,7 @@ function LinkFinder() {
   }
 
   function resetMatchingLinks() {
+    clearLinkFocus();
     matchingLinks = [];
   }
 
