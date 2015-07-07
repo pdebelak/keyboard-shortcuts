@@ -23,7 +23,7 @@ function handleLinkInput(e) {
   if (focusNextLinkPressed(e)) {
     linkFinder.focusNext()
   } else if (textEntered(e)) {
-    linkFinder.addChar(String.fromCharCode(e.keyCode));
+    linkFinder.addChar(enteredChar(e.keyCode));
   }
 }
 
@@ -48,6 +48,7 @@ function LinkFinder() {
   }
 
   function targetFocus() {
+    console.log(_this.matchingLinks());
     return _this.matchingLinks()[currentFocus];
   }
 
@@ -102,7 +103,9 @@ function LinkFinder() {
   _this.addChar = function(char) {
     resetMatchingLinks();
     addLinkText(char);
+    console.log(linkText);
     findLink();
+    console.log(targetFocus());
     focusLink();
   }
 
@@ -158,7 +161,15 @@ function focusNextLinkPressed(e) {
 }
 
 function textEntered(e) {
-  return String.fromCharCode(e.keyCode).match(/[a-zA-Z]/);
+  return String.fromCharCode(e.keyCode).match(/[a-zA-Z]/) || e.keyCode.toString().match(/[0-9]/) ;
+}
+
+function enteredChar(code) {
+  if (code >= 0 && code <= 9) {
+    return code.toString();
+  } else {
+    return String.fromCharCode(code);
+  }
 }
 
 function defaultArgument(argument, defaultArg) {
